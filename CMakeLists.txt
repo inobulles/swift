@@ -179,7 +179,24 @@ set(SWIFT_COMPILER_VERSION "" CACHE STRING
 set(CLANG_COMPILER_VERSION "" CACHE STRING
     "The internal version of the Clang compiler")
 
-option(SWIFT_DISABLE_DEAD_STRIPPING
+# Which default linker to use. Prefer LLVM_USE_LINKER if it set, otherwise use
+# our own defaults. This should only be possible in a unified (not stand alone)
+# build environment.
+if(LLVM_USE_LINKER)
+  set(SWIFT_USE_LINKER_default "${LLVM_USE_LINKER}")
+elseif(CMAKE_SYSTEM_NAME STREQUAL Windows AND NOT CMAKE_HOST_SYSTEM_NAME STREQUAL Windows)
+  set(SWIFT_USE_LINKER_default "lld")
+elseif(CMAKE_SYSTEM_NAME STREQUAL Darwin)
+  set(SWIFT_USE_LINKER_default "")
+elseif(CMAKE_SYSTEM_NAME STREQUAL FreeBSD)
+  set(SWIFT_USE_LINKER_default "")
+else()
+  set(SWIFT_USE_LINKER_default "gold")
+endif()
+set(SWIFT_USE_LINKER ${SWIFT_USE_LINKER_default} CACHE STRING
+    "Build Swift with a non-default linker")
+
+option(SWIFT_DISABLE_DEAD_STRIPPING 
       "Turn off Darwin-specific dead stripping for Swift host tools." FALSE)
 
 set(SWIFT_TOOLS_ENABLE_LTO OFF CACHE STRING "Build Swift tools with LTO. One
